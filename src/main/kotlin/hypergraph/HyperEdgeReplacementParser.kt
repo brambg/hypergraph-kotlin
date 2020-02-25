@@ -1,5 +1,8 @@
 package hypergraph
 
+import hypergraph.HyperEdgeReplacementParser.HyperEdge
+import hypergraph.HyperEdgeReplacementParser.HyperGraph
+import hypergraph.HyperEdgeReplacementParser.StateMachine
 import hypergraph.HyperEdgeReplacementParser.heReplace
 
 object HyperEdgeReplacementParser {
@@ -56,22 +59,22 @@ object HyperEdgeReplacementParser {
 
 fun main() {
     val tokens = listOf("John", "loves", "Mary")
-    val hg = HyperEdgeReplacementParser.HyperGraph(mutableListOf(HyperEdgeReplacementParser.HyperEdge("S", listOf("1"), listOf("2"))))
+    val hg = HyperGraph(mutableListOf(HyperEdge("S", listOf("1"), listOf("2"))))
 
-    val rules = mapOf<String, HyperEdgeReplacementParser.HyperGraph<String>>(
-            "S" to HyperEdgeReplacementParser.HyperGraph(mutableListOf(
-                    HyperEdgeReplacementParser.HyperEdge("JOHN", listOf("_"), listOf("_")))),
-            "JOHN" to HyperEdgeReplacementParser.HyperGraph(mutableListOf(
-                    HyperEdgeReplacementParser.HyperEdge("John", listOf("_"), listOf("3")),
-                    HyperEdgeReplacementParser.HyperEdge("LOVES", listOf("3"), listOf("_")))),
-            "LOVES" to HyperEdgeReplacementParser.HyperGraph(mutableListOf(
-                    HyperEdgeReplacementParser.HyperEdge("loves", listOf("_"), listOf("4")),
-                    HyperEdgeReplacementParser.HyperEdge("MARY", listOf("4"), listOf("_")))),
-            "MARY" to HyperEdgeReplacementParser.HyperGraph(mutableListOf(
-                    HyperEdgeReplacementParser.HyperEdge("Mary", listOf("_"), listOf("_"))))
+    val rules = mapOf(
+            "S" to HyperGraph(mutableListOf(
+                    HyperEdge("JOHN", listOf("_"), listOf("_")))),
+            "JOHN" to HyperGraph(mutableListOf(
+                    HyperEdge("John", listOf("_"), listOf("3")),
+                    HyperEdge("LOVES", listOf("3"), listOf("_")))),
+            "LOVES" to HyperGraph(mutableListOf(
+                    HyperEdge("loves", listOf("_"), listOf("4")),
+                    HyperEdge("MARY", listOf("4"), listOf("_")))),
+            "MARY" to HyperGraph(mutableListOf(
+                    HyperEdge("Mary", listOf("_"), listOf("_"))))
     )
 
-    val stateMachine = HyperEdgeReplacementParser.StateMachine(hg, rules)
+    val stateMachine = StateMachine(hg, rules)
 
     println(stateMachine.hyperGraph)
     heReplace(stateMachine, "S")
@@ -79,4 +82,3 @@ fun main() {
     heReplace(stateMachine, "LOVES")
     heReplace(stateMachine, "MARY")
 }
-
