@@ -1,17 +1,21 @@
 package hypergraph
 
-typealias HyperGraph<N> = MutableList<HyperEdge<N>>
-
-fun <N> hyperGraphOf(vararg edges: HyperEdge<N>) = mutableListOf(*edges)
-
 data class HyperEdge<N>(
         val label: String,
         val source: List<N>,
         val target: List<N>
 )
 
+typealias HyperGraph<N> = List<HyperEdge<N>>
+
+fun <N> hyperGraphOf(vararg edges: HyperEdge<N>) = listOf(*edges)
+
+typealias MutableHyperGraph<N> = MutableList<HyperEdge<N>>
+
+fun <N> mutableHyperGraphOf(vararg edges: HyperEdge<N>) = mutableListOf(*edges)
+
 data class StateMachine<N>(
-        val hyperGraph: HyperGraph<N>,
+        val hyperGraph: MutableHyperGraph<N>,
         val rules: Map<String, HyperGraph<N>>
 )
 
@@ -40,7 +44,7 @@ internal fun <N> heReplace(stateMachine: StateMachine<N>, label: String) {
     println("result: ${stateMachine.hyperGraph}")
 }
 
-private fun <N> deleteHyperEdgeInHyperGraph(hyperGraph: HyperGraph<N>, hyperEdgeToReplace: HyperEdge<N>) {
+private fun <N> deleteHyperEdgeInHyperGraph(hyperGraph: MutableHyperGraph<N>, hyperEdgeToReplace: HyperEdge<N>) {
     val index = hyperGraph.indexOfFirst { it == hyperEdgeToReplace }
     hyperGraph.removeAt(index)
 }
@@ -51,7 +55,7 @@ private fun <N> findHyperEdgeInHyperGraphByLabel(hyperGraph: HyperGraph<N>, labe
 
 fun main() {
     val tokens = listOf("John", "loves", "Mary")
-    val hg = hyperGraphOf(HyperEdge("S", listOf("1"), listOf("2")))
+    val hg = mutableHyperGraphOf(HyperEdge("S", listOf("1"), listOf("2")))
 
     val rules = mapOf(
             "S" to hyperGraphOf(
