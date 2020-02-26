@@ -14,10 +14,14 @@ typealias MutableHyperGraph<N> = MutableList<HyperEdge<N>>
 
 fun <N> mutableHyperGraphOf(vararg edges: HyperEdge<N>) = mutableListOf(*edges)
 
+fun String.isAllCaps(): Boolean = this.toUpperCase() == this
+
 data class StateMachine<N>(
         val hyperGraph: MutableHyperGraph<N>,
         val rules: Map<String, HyperGraph<N>>
-)
+) {
+    fun isInValidEndState(): Boolean = hyperGraph.none { it.label.isAllCaps() }
+}
 
 internal fun <N> heReplace(stateMachine: StateMachine<N>, label: String) {
     val hyperEdgeToReplace = findHyperEdgeInHyperGraphByLabel(stateMachine.hyperGraph, label)
@@ -51,30 +55,4 @@ private fun <N> deleteHyperEdgeInHyperGraph(hyperGraph: MutableHyperGraph<N>, hy
 
 private fun <N> findHyperEdgeInHyperGraphByLabel(hyperGraph: HyperGraph<N>, label: String): HyperEdge<N> {
     return hyperGraph.first { it.label == label }
-}
-
-fun main() {
-    val tokens = listOf("John", "loves", "Mary")
-    val hg = mutableHyperGraphOf(HyperEdge("S", listOf("1"), listOf("2")))
-
-    val rules = mapOf(
-            "S" to hyperGraphOf(
-                    HyperEdge("JOHN", listOf("_"), listOf("_"))),
-            "JOHN" to hyperGraphOf(
-                    HyperEdge("John", listOf("_"), listOf("3")),
-                    HyperEdge("LOVES", listOf("3"), listOf("_"))),
-            "LOVES" to hyperGraphOf(
-                    HyperEdge("loves", listOf("_"), listOf("4")),
-                    HyperEdge("MARY", listOf("4"), listOf("_"))),
-            "MARY" to hyperGraphOf(
-                    HyperEdge("Mary", listOf("_"), listOf("_")))
-    )
-
-    val stateMachine = StateMachine(hg, rules)
-
-    println(stateMachine.hyperGraph)
-    heReplace(stateMachine, "S")
-    heReplace(stateMachine, "JOHN")
-    heReplace(stateMachine, "LOVES")
-    heReplace(stateMachine, "MARY")
 }
