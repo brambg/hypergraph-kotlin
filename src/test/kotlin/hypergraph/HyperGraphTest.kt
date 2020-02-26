@@ -6,9 +6,9 @@ import org.junit.Test
 class HyperGraphTest {
 
     @Test
-    fun test() {
+    fun testStateMachine() {
         val tokens = listOf("John", "loves", "Mary")
-        val hg = mutableHyperGraphOf(HyperEdge("S", listOf("1"), listOf("2")))
+        val startState = HyperEdge("S", listOf("1"), listOf("2"))
 
         val rules = mapOf(
                 "S" to hyperGraphOf(
@@ -23,13 +23,19 @@ class HyperGraphTest {
                         HyperEdge("Mary", listOf("_"), listOf("_")))
         )
 
-        val stateMachine = StateMachine(hg, rules)
+        val stateMachine = StateMachine(rules, startState)
 
         println(stateMachine.hyperGraph)
-        heReplace(stateMachine, "S")
-        heReplace(stateMachine, "JOHN")
-        heReplace(stateMachine, "LOVES")
-        heReplace(stateMachine, "MARY")
-        assertThat(stateMachine.isInValidEndState()).isTrue()
+        stateMachine.apply(tokens)
+        assertThat(stateMachine.hasValidEndState()).isTrue()
+
+        stateMachine.reset()
+        val badTokens = listOf("Cookiemonster", "eats", "stroopwafels")
+        try {
+            stateMachine.apply(badTokens)
+        } catch (ex: Exception) {
+            assertThat(ex.message == "No rule found that matches token 'Cookiemonster'")
+        }
+        assertThat(stateMachine.hasValidEndState()).isFalse()
     }
 }
