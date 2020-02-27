@@ -22,44 +22,79 @@ interface EdgeLabel {
     fun <T> matchesToken(token: T): Boolean
 }
 
-abstract class TerminalEdgeLabel : EdgeLabel
-
 open class NonTerminalEdgeLabel(val name: String) : EdgeLabel {
-    // terminals are already matched, can't be matched again
     override fun <T> matchesToken(token: T): Boolean = false
 }
 
 data class MarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
-    override fun <T> matchesToken(token: T): Boolean = token is OpenMarkupToken
-}
-
-data class OpenMarkupNonTerminal(val tagName: String) : NonTerminalEdgeLabel(tagName) {
     override fun <T> matchesToken(token: T): Boolean =
-            token is CloseMarkupToken && token.tagName == tagName
+            token is OpenMarkupToken
 }
 
-data class ClosedMarkupTerminal(val tagName: String) : TerminalEdgeLabel() {
-    override fun <T> matchesToken(token: T): Boolean = false
+data class OpenMarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
+    override fun <T> matchesToken(token: T): Boolean =
+            token is OpenMarkupToken
 }
 
-data class TextNonTerminal(val variableName: String) : NonTerminalEdgeLabel(variableName) {
+data class TextNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
+    override fun <T> matchesToken(token: T): Boolean =
+            token is TextToken
+}
+
+abstract class TerminalEdgeLabel<in T> : EdgeLabel {
+    abstract fun applyToken(token: T)
+}
+
+class TextTerminal : TerminalEdgeLabel<TextToken>() {
+    private var content: String? = null
+
     override fun <T> matchesToken(token: T): Boolean = token is TextToken
+
+    override fun applyToken(textToken: TextToken) {
+        content = textToken.content
+    }
+
+    override fun toString(): String =
+            if (content != null) {
+                """"$content""""
+            } else {
+                error("content not set")
+            }
 }
 
-data class TextTerminal(val content: String) : TerminalEdgeLabel() {
-    override fun <T> matchesToken(token: T): Boolean =
-            token is TextToken && token.content == content
+class MarkupTerminal : TerminalEdgeLabel<MarkupToken>() {
+    private var markupName: String? = null
+
+    override fun <T> matchesToken(token: T): Boolean = token is CloseMarkupToken
+
+    override fun applyToken(token: MarkupToken) {
+        markupName = token.tagName
+    }
+
+    override fun toString(): String =
+            if (markupName != null) {
+                "[$markupName]"
+            } else {
+                error("markupName not set")
+            }
 }
 
 data class NonTerminal(val label: String) : NonTerminalEdgeLabel(label)
 
-data class Terminal(val content: String) : TerminalEdgeLabel() {
+data class Terminal(val content: String) : TerminalEdgeLabel<String>() {
     override fun <T> matchesToken(token: T): Boolean =
             token == content
+
+    override fun applyToken(token: String) {
+    }
 }
 
 interface Token
 
-data class OpenMarkupToken(val tagName: String) : Token
-data class CloseMarkupToken(val tagName: String) : Token
+open class MarkupToken(val tagName: String) : Token
+
+class OpenMarkupToken(tagName: String) : MarkupToken(tagName)
+
+class CloseMarkupToken(tagName: String) : MarkupToken(tagName)
+
 data class TextToken(val content: String) : Token

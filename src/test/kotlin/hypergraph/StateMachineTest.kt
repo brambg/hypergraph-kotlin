@@ -23,7 +23,7 @@ class StateMachineTest {
                         HyperEdge(listOf("_"), Terminal("Mary"), listOf("_")))
         )
 
-        val stateMachine = StateMachine(rules, startState)
+        val stateMachine = StateMachine<String, String>(rules, startState)
 
         println(stateMachine.hyperGraph)
         stateMachine.apply(tokens)
@@ -42,26 +42,28 @@ class StateMachineTest {
     @Test
     fun testTRD509_1() {
 //        val tagml = "[tag>text<tag]"
-        val tokens = listOf("[tag>", "text", "<tag]")
+        val tokens = listOf(
+                OpenMarkupToken("tag"),
+                TextToken("text"),
+                CloseMarkupToken("tag")
+        )
         val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
-        println(startState)
 
         val rules = mapOf(
                 "S" to hyperGraphOf(
-                        HyperEdge(listOf("_"), NonTerminal("[TAG>"), listOf("_"))),
-                "[TAG>" to hyperGraphOf(
-                        HyperEdge(listOf("_"), NonTerminal("<TAG]"), listOf("3")),
-                        HyperEdge(listOf("3"), NonTerminal("TEXT"), listOf("_"))),
+                        HyperEdge(listOf("_"), MarkupNonTerminal("M"), listOf("_"))),
+                "M" to hyperGraphOf(
+                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM"), listOf("3")),
+                        HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
                 "TEXT" to hyperGraphOf(
-                        HyperEdge(listOf("_"), Terminal("text"), listOf("4"))),
-                "<TAG]" to hyperGraphOf(
-                        HyperEdge(listOf("_"), Terminal("tag"), listOf("_")))
+                        HyperEdge(listOf("_"), TextTerminal(), listOf("_"))),
+                "OM" to hyperGraphOf(
+                        HyperEdge(listOf("_"), MarkupTerminal(), listOf("_")))
         )
 
-        val stateMachine = StateMachine(rules, startState)
-
-        println(stateMachine.hyperGraph)
+        val stateMachine = StateMachine<String, Token>(rules, startState)
         stateMachine.apply(tokens)
         assertThat(stateMachine.hasValidEndState()).isTrue()
+        println("\nresulting hypergraph edges:\n  ${stateMachine.hyperGraph.joinToString("\n  ")}")
     }
 }
