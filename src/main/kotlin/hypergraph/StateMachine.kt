@@ -3,7 +3,7 @@ package hypergraph
 class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val startState: HyperEdge<N>) {
     val hyperGraph = mutableHyperGraphOf(startState)
     private var inStartState = true
-    var nonTerminals = listOf<String>()
+    private var nonTerminals = listOf<String>()
 
     fun apply(tokens: List<N>) {
         if (inStartState) {
@@ -12,8 +12,8 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
         }
         for (t in tokens) {
             val applicableRules = rules
-                    .filter { entry -> entry.key in nonTerminals && entry.value.any { it.label == t } }
-                    .map { it.key }.toList()
+                    .filter { entry -> entry.key in nonTerminals && entry.value.any { it.label.matchesToken(t) } }
+                    .map { NonTerminal(it.key) }
             when (val size = applicableRules.size) {
                 0    -> error("No rule found that matches token '$t'")
                 1    -> replaceHyperEdge(applicableRules[0])
@@ -52,7 +52,9 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
 
         deleteHyperEdgeInHyperGraph(hyperGraph, hyperEdgeToReplace)
         hyperGraph.addAll(copyHyperEdges)
-        nonTerminals = hyperGraph.filter { it.label.isAllCaps() }.map { it.label }.toList()
+        nonTerminals = hyperGraph.filter { it.label is NonTerminalEdgeLabel }
+                .map { (it.label as NonTerminalEdgeLabel).name }
+                .toList()
         println("result: $hyperGraph")
         println("nonTerminals: $nonTerminals")
     }
@@ -62,6 +64,7 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
         hyperGraph.removeAt(index)
     }
 
-    private fun <N> HyperGraph<N>.findHyperEdgeByLabel(label: EdgeLabel): HyperEdge<N> =
-            this.first { (it.label as NonTerminalEdgeLabel).name == (label as NonTerminalEdgeLabel).name }
+    private fun <N> HyperGraph<N>.findHyperEdgeByLabel(label: NonTerminalEdgeLabel): HyperEdge<N> =
+            this.filter { it.label is NonTerminalEdgeLabel }
+                    .first { (it.label as NonTerminalEdgeLabel).name == label.name }
 }
