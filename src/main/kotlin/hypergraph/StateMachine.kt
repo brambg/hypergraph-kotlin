@@ -6,22 +6,22 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
 
     fun apply(tokens: List<N>) {
         if (inStartState) {
-            replaceHyperEdge(startState.label)
+            replaceHyperEdge(startState.label as NonTerminalEdgeLabel)
             inStartState = false
         }
         for (t in tokens) {
             val applicableRules = rules.filter {
-                it.value.any { hyperEdge -> hyperEdge.label == t }
+                it.value.any { hyperEdge -> hyperEdge.label.matchesToken(t) }
             }
             when (val size = applicableRules.size) {
                 0    -> error("No rule found that matches token '$t'")
-                1    -> replaceHyperEdge(applicableRules.iterator().next().key)
+                1    -> replaceHyperEdge(NonTerminal(applicableRules.iterator().next().key))
                 else -> error("$size rules were found, that should not be possible!")
             }
         }
     }
 
-    fun hasValidEndState(): Boolean = hyperGraph.none { it.label.isAllCaps() }
+    fun hasValidEndState(): Boolean = hyperGraph.none { it.label is NonTerminalEdgeLabel }
 
     fun reset() {
         hyperGraph.clear()
@@ -29,10 +29,10 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
         inStartState = true
     }
 
-    private fun replaceHyperEdge(label: String) {
+    private fun replaceHyperEdge(label: NonTerminalEdgeLabel) {
         val hyperEdgeToReplace = hyperGraph.findHyperEdgeByLabel(label)
 
-        val hyperGraphToReplaceWith = rules[label] ?: error("No applicable rule found")
+        val hyperGraphToReplaceWith = rules[label.name] ?: error("No applicable rule found")
 
         val iterSourceExternalNodes = hyperEdgeToReplace.source.toList().iterator()
         val iterTargetExternalNodes = hyperEdgeToReplace.target.toList().iterator()
@@ -46,7 +46,7 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
                 if (it == "_") iterTargetExternalNodes.next()
                 else it
             }.toList()
-            HyperEdge(edge.label, copySourceNodes, copyTargetNodes)
+            HyperEdge(copySourceNodes, edge.label, copyTargetNodes)
         }
 
         deleteHyperEdgeInHyperGraph(hyperGraph, hyperEdgeToReplace)
@@ -59,6 +59,6 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
         hyperGraph.removeAt(index)
     }
 
-    private fun <N> HyperGraph<N>.findHyperEdgeByLabel(label: String): HyperEdge<N> =
-            this.first { it.label == label }
+    private fun <N> HyperGraph<N>.findHyperEdgeByLabel(label: EdgeLabel): HyperEdge<N> =
+            this.first { (it.label as NonTerminalEdgeLabel).name == (label as NonTerminalEdgeLabel).name }
 }
