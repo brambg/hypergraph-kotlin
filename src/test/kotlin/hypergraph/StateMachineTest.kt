@@ -6,8 +6,28 @@ import org.junit.Test
 class StateMachineTest {
 
     @Test
-    fun testStateMachine() {
+    fun test_StateMachine_with_valid_input() {
+        val stateMachine = make_jlm_StateMachine()
         val tokens = listOf("John", "loves", "Mary")
+        stateMachine.apply(tokens)
+        printHyperGraph(stateMachine)
+        assertThat(stateMachine.hasValidEndState()).isTrue()
+    }
+
+    @Test
+    fun test_StateMachine_with_invalid_input() {
+        val stateMachine = make_jlm_StateMachine()
+        val badTokens = listOf("Cookiemonster", "eats", "stroopwafels")
+        try {
+            stateMachine.apply(badTokens)
+            printHyperGraph(stateMachine)
+        } catch (ex: Exception) {
+            assertThat(ex.message == "No rule found that matches token 'Cookiemonster'")
+        }
+        assertThat(stateMachine.hasValidEndState()).isFalse()
+    }
+
+    private fun make_jlm_StateMachine(): StateMachine<String, String> {
         val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
 
         val rules = mapOf(
@@ -23,30 +43,44 @@ class StateMachineTest {
                         HyperEdge(listOf("_"), Terminal("Mary"), listOf("_")))
         )
 
-        val stateMachine = StateMachine<String, String>(rules, startState)
-
-        println(stateMachine.hyperGraph)
-        stateMachine.apply(tokens)
-        assertThat(stateMachine.hasValidEndState()).isTrue()
-
-        stateMachine.reset()
-        val badTokens = listOf("Cookiemonster", "eats", "stroopwafels")
-        try {
-            stateMachine.apply(badTokens)
-        } catch (ex: Exception) {
-            assertThat(ex.message == "No rule found that matches token 'Cookiemonster'")
-        }
-        assertThat(stateMachine.hasValidEndState()).isFalse()
+        return StateMachine(rules, startState)
     }
 
     @Test
-    fun testTRD509_1() {
+    fun test_TRD509_1_with_valid_input() {
+        val stateMachine = make_TRD509_1_StateMachine()
+
 //        val tagml = "[tag>text<tag]"
         val tokens = listOf(
                 OpenMarkupToken("tag"),
                 TextToken("text"),
                 CloseMarkupToken("tag")
         )
+        stateMachine.apply(tokens)
+        assertThat(stateMachine.hasValidEndState()).isTrue()
+        printHyperGraph(stateMachine)
+    }
+
+    @Test
+    fun test_TRD509_1_with_invalid_input() {
+        val stateMachine = make_TRD509_1_StateMachine()
+
+        val badTokens = listOf(
+                OpenMarkupToken("tag"),
+                TextToken("text"),
+                CloseMarkupToken("someothertagname")
+        )
+
+        try {
+            stateMachine.apply(badTokens)
+            printHyperGraph(stateMachine)
+        } catch (ex: Exception) {
+            assertThat(ex.message == "Unexpected token: '<someothertagname]', expected '<tag]'")
+        }
+        assertThat(stateMachine.hasValidEndState()).isFalse()
+    }
+
+    private fun make_TRD509_1_StateMachine(): StateMachine<String, Token> {
         val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
 
         val rules = mapOf(
@@ -61,11 +95,13 @@ class StateMachineTest {
                         HyperEdge(listOf("_"), MarkupTerminal(), listOf("_")))
         )
 
-        val stateMachine = StateMachine<String, Token>(rules, startState)
-        stateMachine.apply(tokens)
-        assertThat(stateMachine.hasValidEndState()).isTrue()
-        println("\nresulting hypergraph edges:\n  ${stateMachine.hyperGraph
+        return StateMachine(rules, startState)
+    }
+
+    private fun <T> printHyperGraph(stateMachine: StateMachine<String, T>) {
+        val toString = stateMachine.hyperGraph
                 .sortedBy { it.source.toString() }
-                .joinToString("\n  ")}")
+                .joinToString("\n  ")
+        println("\nhypergraph edges:\n  $toString\n")
     }
 }
