@@ -64,6 +64,8 @@ class StateMachineTest {
         val stateMachine = StateMachine<String, Token>(rules, startState)
         stateMachine.apply(tokens)
         assertThat(stateMachine.hasValidEndState()).isTrue()
-        println("\nresulting hypergraph edges:\n  ${stateMachine.hyperGraph.joinToString("\n  ")}")
+        println("\nresulting hypergraph edges:\n  ${stateMachine.hyperGraph
+                .sortedBy { it.source.toString() }
+                .joinToString("\n  ")}")
     }
 }
