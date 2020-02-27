@@ -3,6 +3,7 @@ package hypergraph
 class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val startState: HyperEdge<N>) {
     val hyperGraph = mutableHyperGraphOf(startState)
     private var inStartState = true
+    var nonTerminals = listOf<String>()
 
     fun apply(tokens: List<N>) {
         if (inStartState) {
@@ -10,12 +11,12 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
             inStartState = false
         }
         for (t in tokens) {
-            val applicableRules = rules.filter {
-                it.value.any { hyperEdge -> hyperEdge.label == t }
-            }
+            val applicableRules = rules
+                    .filter { entry -> entry.key in nonTerminals && entry.value.any { it.label == t } }
+                    .map { it.key }.toList()
             when (val size = applicableRules.size) {
                 0    -> error("No rule found that matches token '$t'")
-                1    -> replaceHyperEdge(applicableRules.iterator().next().key)
+                1    -> replaceHyperEdge(applicableRules[0])
                 else -> error("$size rules were found, that should not be possible!")
             }
         }
@@ -51,7 +52,9 @@ class StateMachine<N>(private val rules: Map<String, HyperGraph<N>>, private val
 
         deleteHyperEdgeInHyperGraph(hyperGraph, hyperEdgeToReplace)
         hyperGraph.addAll(copyHyperEdges)
+        nonTerminals = hyperGraph.filter { it.label.isAllCaps() }.map { it.label }.toList()
         println("result: $hyperGraph")
+        println("nonTerminals: $nonTerminals")
     }
 
     private fun <N> deleteHyperEdgeInHyperGraph(hyperGraph: MutableHyperGraph<N>, hyperEdgeToReplace: HyperEdge<N>) {
