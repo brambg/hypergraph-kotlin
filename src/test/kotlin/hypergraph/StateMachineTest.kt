@@ -1,5 +1,6 @@
 package hypergraph
 
+import junit.framework.Assert.fail
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
@@ -74,8 +75,9 @@ class StateMachineTest {
         try {
             stateMachine.apply(badTokens)
             printHyperGraph(stateMachine)
+            fail()
         } catch (ex: Exception) {
-            assertThat(ex.message == "Unexpected token: '<someothertagname]', expected '<tag]'")
+            assertThat(ex.message).isEqualTo("Unexpected token: '<someothertagname]', expected '<tag]'")
         }
         assertThat(stateMachine.hasValidEndState()).isFalse()
     }
@@ -89,6 +91,7 @@ class StateMachineTest {
                 "M" to hyperGraphOf(
                         HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM"), listOf("3")),
                         HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
+                // the OpenMarkupNonTerminal is a TemplateLabel, which means it should add a rule based on the token
                 "TEXT" to hyperGraphOf(
                         HyperEdge(listOf("_"), TextTerminal(), listOf("_"))),
                 "OM" to hyperGraphOf(

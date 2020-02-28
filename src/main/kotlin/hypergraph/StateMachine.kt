@@ -48,8 +48,8 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
             }
 
             val newEdgeLabel = edge.label
-            if (token != null && newEdgeLabel is TerminalEdgeLabel<*>) {
-                (newEdgeLabel as TerminalEdgeLabel<T>).applyToken(token)
+            if (token != null && newEdgeLabel is LabelTemplate<*>) {
+                (newEdgeLabel as LabelTemplate<T>).applyToken(token)
             }
 
             val newTargetNodes = edge.target.map {

@@ -13,9 +13,15 @@ data class MarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
             token is OpenMarkupToken
 }
 
-data class OpenMarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
+data class OpenMarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label), LabelTemplate<CloseMarkupToken> {
+    private var tagName: String? = null
+
     override fun <T> matchesToken(token: T): Boolean =
-            token is OpenMarkupToken
+            token is CloseMarkupToken && token.tagName == tagName
+
+    override fun applyToken(token: CloseMarkupToken) {
+        tagName = token.tagName
+    }
 }
 
 data class TextNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
@@ -23,9 +29,11 @@ data class TextNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
             token is TextToken
 }
 
-abstract class TerminalEdgeLabel<in T> : EdgeLabel {
-    abstract fun applyToken(token: T)
+interface LabelTemplate<in T> {
+    fun applyToken(token: T)
 }
+
+abstract class TerminalEdgeLabel<in T> : EdgeLabel, LabelTemplate<T>
 
 class TextTerminal : TerminalEdgeLabel<TextToken>() {
     private var content: String? = null
