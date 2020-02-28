@@ -1,2 +1,2 @@
 # hypergraph-kotlin
-kotlin implementation of https://github.com/rhdekker/hypergraph/tree/master/hypergraph_julia
+kotlin implementation and evolution of https://github.com/rhdekker/hypergraph/tree/master/hypergraph_julia
