@@ -13,14 +13,14 @@ data class MarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
             token is OpenMarkupToken
 }
 
-data class OpenMarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label), LabelTemplate<CloseMarkupToken> {
-    private var tagName: String? = null
+data class OpenMarkupNonTerminal(val label: String, val parameter: (MarkupToken) -> Any) : NonTerminalEdgeLabel(label),
+        LabelTemplate<OpenMarkupToken> {
+    private var parameterValue: Any? = null
 
     override fun <T> matchesToken(token: T): Boolean =
-            token is CloseMarkupToken && token.tagName == tagName
+            token is OpenMarkupToken //&& parameter(token) == parameterValue
 
-    override fun applyToken(token: CloseMarkupToken) {
-        tagName = token.tagName
+    override fun applyToken(token: OpenMarkupToken) {
     }
 }
 
@@ -52,21 +52,22 @@ class TextTerminal : TerminalEdgeLabel<TextToken>() {
             }
 }
 
-class MarkupTerminal : TerminalEdgeLabel<MarkupToken>() {
-    private var markupName: String? = null
+class MarkupTerminal(val parameter: (MarkupToken) -> Any) : TerminalEdgeLabel<MarkupToken>() {
 
-    override fun <T> matchesToken(token: T): Boolean = token is CloseMarkupToken
+    private var parameterValue: Any? = null
 
-    override fun applyToken(token: MarkupToken) {
-        markupName = token.tagName
-    }
+    override fun <T> matchesToken(token: T): Boolean = token is CloseMarkupToken && parameter(token) == parameterValue
 
     override fun toString(): String =
-            if (markupName != null) {
-                "[$markupName]"
+            if (parameterValue != null) {
+                "[$parameterValue]"
             } else {
                 error("markupName not set")
             }
+
+    override fun applyToken(token: MarkupToken) {
+        this.parameterValue = parameter(token)
+    }
 }
 
 data class NonTerminal(val label: String) : NonTerminalEdgeLabel(label)

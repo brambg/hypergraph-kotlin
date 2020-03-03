@@ -89,13 +89,200 @@ class StateMachineTest {
                 "S" to hyperGraphOf(
                         HyperEdge(listOf("_"), MarkupNonTerminal("M"), listOf("_"))),
                 "M" to hyperGraphOf(
-                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM"), listOf("3")),
+                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM", MarkupToken::tagName), listOf("3")),
                         HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
                 // the OpenMarkupNonTerminal is a TemplateLabel, which means it should add a rule based on the token
                 "TEXT" to hyperGraphOf(
                         HyperEdge(listOf("_"), TextTerminal(), listOf("_"))),
                 "OM" to hyperGraphOf(
-                        HyperEdge(listOf("_"), MarkupTerminal(), listOf("_")))
+                        HyperEdge(listOf("_"), MarkupTerminal(MarkupToken::tagName), listOf("_")))
+        )
+
+        return StateMachine(rules, startState)
+    }
+
+    @Test
+    fun test_TRD509_2_with_valid_input() {
+        val stateMachine = make_TRD509_2_StateMachine()
+
+//        val tagml = "[tag>[color>Green<color][food>Eggs<food][food>Ham<food]<tag]"
+        val tokens = listOf(
+                OpenMarkupToken("tag"),
+                OpenMarkupToken("color"),
+                TextToken("Green"),
+                CloseMarkupToken("color"),
+                OpenMarkupToken("food"),
+                TextToken("Eggs"),
+                CloseMarkupToken("food"),
+                OpenMarkupToken("food"),
+                TextToken("Ham"),
+                CloseMarkupToken("food"),
+                CloseMarkupToken("tag")
+        )
+        stateMachine.apply(tokens)
+        assertThat(stateMachine.hasValidEndState()).isTrue()
+        printHyperGraph(stateMachine)
+    }
+
+    @Test
+    fun test_TRD509_2_with_invalid_input() {
+        val stateMachine = make_TRD509_2_StateMachine()
+
+        val badTokens = listOf(
+                OpenMarkupToken("tag"),
+                OpenMarkupToken("color"),
+                TextToken("Green"),
+                CloseMarkupToken("tag")
+        )
+        stateMachine.apply(badTokens)
+        try {
+            stateMachine.apply(badTokens)
+            printHyperGraph(stateMachine)
+            fail()
+        } catch (ex: Exception) {
+            assertThat(ex.message).isEqualTo("Unexpected token: '<tag]', expected '<color]'")
+        }
+        assertThat(stateMachine.hasValidEndState()).isFalse()
+    }
+
+    private fun make_TRD509_2_StateMachine(): StateMachine<String, Token> {
+        val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
+
+        val rules = mapOf(
+                "S" to hyperGraphOf(
+                        HyperEdge(listOf("_"), MarkupNonTerminal("M"), listOf("_"))),
+                "M" to hyperGraphOf(
+                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM", MarkupToken::tagName), listOf("3")),
+                        HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
+                "TEXT" to hyperGraphOf(
+                        HyperEdge(listOf("_"), TextTerminal(), listOf("_"))),
+                "OM" to hyperGraphOf(
+                        HyperEdge(listOf("_"), MarkupTerminal(MarkupToken::tagName), listOf("_")))
+        )
+
+        return StateMachine(rules, startState)
+    }
+
+    @Test
+    fun test_TRD509_3_with_valid_input() {
+        val stateMachine = make_TRD509_3_StateMachine()
+
+//        val tagml = "[tag>[color>Green<color] [food>Eggs<food] and [food>Ham<food]<tag]"
+        val tokens = listOf(
+                OpenMarkupToken("tag"),
+                OpenMarkupToken("color"),
+                TextToken("Green"),
+                CloseMarkupToken("color"),
+                TextToken(" "),
+                OpenMarkupToken("food"),
+                TextToken("Eggs"),
+                CloseMarkupToken("food"),
+                TextToken(" and "),
+                OpenMarkupToken("food"),
+                TextToken("Ham"),
+                CloseMarkupToken("food"),
+                CloseMarkupToken("tag")
+        )
+        stateMachine.apply(tokens)
+        assertThat(stateMachine.hasValidEndState()).isTrue()
+        printHyperGraph(stateMachine)
+    }
+
+    @Test
+    fun test_TRD509_3_with_invalid_input() {
+        val stateMachine = make_TRD509_3_StateMachine()
+
+        val badTokens = listOf(
+                OpenMarkupToken("tag"),
+                OpenMarkupToken("color"),
+                TextToken("Green"),
+                CloseMarkupToken("tag")
+        )
+        stateMachine.apply(badTokens)
+        try {
+            stateMachine.apply(badTokens)
+            printHyperGraph(stateMachine)
+            fail()
+        } catch (ex: Exception) {
+            assertThat(ex.message).isEqualTo("Unexpected token: '<tag]', expected '<color]'")
+        }
+        assertThat(stateMachine.hasValidEndState()).isFalse()
+    }
+
+    private fun make_TRD509_3_StateMachine(): StateMachine<String, Token> {
+        val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
+
+        val rules = mapOf(
+                "S" to hyperGraphOf(
+                        HyperEdge(listOf("_"), MarkupNonTerminal("M"), listOf("_"))),
+                "M" to hyperGraphOf(
+                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM", MarkupToken::tagName), listOf("3")),
+                        HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
+                "TEXT" to hyperGraphOf(
+                        HyperEdge(listOf("_"), TextTerminal(), listOf("_"))),
+                "OM" to hyperGraphOf(
+                        HyperEdge(listOf("_"), MarkupTerminal(MarkupToken::tagName), listOf("_")))
+        )
+
+        return StateMachine(rules, startState)
+    }
+
+    @Test
+    fun test_TRD509_4_with_valid_input() {
+        val stateMachine = make_TRD509_4_StateMachine()
+
+//        val tagml = "[tag|+A,+B>[a|A>Cookiemonster [b|B>likes<a] cookies<b]<tag]"
+        val tokens = listOf(
+                OpenMarkupToken("tag"/*, listOf("+A","+B")*/),
+                OpenMarkupToken("a"/*, listOf("A")*/),
+                TextToken("Cookiemonster "),
+                OpenMarkupToken("b"/*, listOf("B")*/),
+                TextToken("likes"),
+                CloseMarkupToken("a"),
+                TextToken(" cookies"),
+                OpenMarkupToken("food"),
+                CloseMarkupToken("b"),
+                CloseMarkupToken("tag")
+        )
+        stateMachine.apply(tokens)
+        assertThat(stateMachine.hasValidEndState()).isTrue()
+        printHyperGraph(stateMachine)
+    }
+
+    @Test
+    fun test_TRD509_4_with_invalid_input() {
+        val stateMachine = make_TRD509_4_StateMachine()
+
+        val badTokens = listOf(
+                OpenMarkupToken("tag"),
+                OpenMarkupToken("a"),
+                TextToken("Green"),
+                CloseMarkupToken("tag")
+        )
+        stateMachine.apply(badTokens)
+        try {
+            stateMachine.apply(badTokens)
+            printHyperGraph(stateMachine)
+            fail()
+        } catch (ex: Exception) {
+            assertThat(ex.message).isEqualTo("Unexpected token: '<tag]', expected '<a]'")
+        }
+        assertThat(stateMachine.hasValidEndState()).isFalse()
+    }
+
+    private fun make_TRD509_4_StateMachine(): StateMachine<String, Token> {
+        val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
+
+        val rules = mapOf(
+                "S" to hyperGraphOf(
+                        HyperEdge(listOf("_"), MarkupNonTerminal("M"), listOf("_"))),
+                "M" to hyperGraphOf(
+                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM", MarkupToken::tagName), listOf("3")),
+                        HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
+                "TEXT" to hyperGraphOf(
+                        HyperEdge(listOf("_"), TextTerminal(), listOf("_"))),
+                "OM" to hyperGraphOf(
+                        HyperEdge(listOf("_"), MarkupTerminal(MarkupToken::tagName), listOf("_")))
         )
 
         return StateMachine(rules, startState)
