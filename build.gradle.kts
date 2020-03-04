@@ -31,7 +31,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
     // Use the Kotlin JUnit integration.
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
-
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.amshove.kluent:kluent:1.60")
     testImplementation("org.assertj:assertj-core:3.12.2")
 }
