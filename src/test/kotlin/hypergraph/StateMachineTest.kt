@@ -12,8 +12,6 @@ class StateMachineTest {
 
         val rules = mapOf(
                 "S" to hyperGraphOf(
-                        HyperEdge("JOHN", listOf("_"), listOf("_"))),
-                "JOHN" to hyperGraphOf(
                         HyperEdge("John", listOf("_"), listOf("3")),
                         HyperEdge("LOVES", listOf("3"), listOf("_"))),
                 "LOVES" to hyperGraphOf(
@@ -27,7 +25,7 @@ class StateMachineTest {
 
         println(stateMachine.hyperGraph)
         stateMachine.apply(tokens)
-        assertThat(stateMachine.hasValidEndState()).isTrue()
+        assertThat(stateMachine.hasValidEndState()).isTrue
 
         stateMachine.reset()
         val badTokens = listOf("Cookiemonster", "eats", "stroopwafels")
@@ -36,6 +34,6 @@ class StateMachineTest {
         } catch (ex: Exception) {
             assertThat(ex.message == "No rule found that matches token 'Cookiemonster'")
         }
-        assertThat(stateMachine.hasValidEndState()).isFalse()
+        assertThat(stateMachine.hasValidEndState()).isFalse
     }
 }
