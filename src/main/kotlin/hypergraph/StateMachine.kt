@@ -2,14 +2,10 @@ package hypergraph
 
 class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private val startState: HyperEdge<N>) {
     val hyperGraph = mutableHyperGraphOf(startState)
-    private var inStartState = true
-    private var nonTerminalsInGraph = listOf<String>()
+
+    private var nonTerminalsInGraph = listOf<String>((startState.label as NonTerminal).name)
 
     fun apply(tokens: List<T>) {
-        if (inStartState) {
-            replaceHyperEdge(startState.label as NonTerminalEdgeLabel)
-            inStartState = false
-        }
         for (t in tokens) {
             val relevantNonTerminals = rules
                     .filter { entry ->
@@ -30,7 +26,6 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
     fun reset() {
         hyperGraph.clear()
         hyperGraph.add(startState)
-        inStartState = true
     }
 
     private inline fun replaceHyperEdge(label: NonTerminalEdgeLabel, token: T? = null) {

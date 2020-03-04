@@ -8,14 +8,16 @@ open class NonTerminalEdgeLabel(val name: String) : EdgeLabel {
     override fun <T> matchesToken(token: T): Boolean = false
 }
 
-data class MarkupNonTerminal(val label: String) : NonTerminalEdgeLabel(label) {
+data class MarkupNonTerminal(val nonTerminal: String, val parameter: String = "") : NonTerminalEdgeLabel(nonTerminal) {
+    val labelId = "$nonTerminal(_)"
+
     override fun <T> matchesToken(token: T): Boolean =
             token is OpenMarkupToken
 }
 
-data class OpenMarkupNonTerminal(val label: String, val parameter: (MarkupToken) -> Any) : NonTerminalEdgeLabel(label),
+data class OpenMarkupNonTerminal(val nonTerminal: String, val parameter: String = "") : NonTerminalEdgeLabel(nonTerminal),
         LabelTemplate<OpenMarkupToken> {
-    private var parameterValue: Any? = null
+    val labelId = "$nonTerminal(_)"
 
     override fun <T> matchesToken(token: T): Boolean =
             token is OpenMarkupToken //&& parameter(token) == parameterValue
@@ -52,25 +54,32 @@ class TextTerminal : TerminalEdgeLabel<TextToken>() {
             }
 }
 
-class MarkupTerminal(val parameter: (MarkupToken) -> Any) : TerminalEdgeLabel<MarkupToken>() {
+class MarkupTerminal(val tagName: String) : TerminalEdgeLabel<MarkupToken>() {
 
-    private var parameterValue: Any? = null
-
-    override fun <T> matchesToken(token: T): Boolean = token is CloseMarkupToken && parameter(token) == parameterValue
+    override fun <T> matchesToken(token: T): Boolean = token is CloseMarkupToken && token.tagName == tagName
 
     override fun toString(): String =
-            if (parameterValue != null) {
-                "[$parameterValue]"
+            if (tagName != null) {
+                "[$tagName]"
             } else {
-                error("markupName not set")
+                error("tagName not set")
             }
 
     override fun applyToken(token: MarkupToken) {
-        this.parameterValue = parameter(token)
     }
 }
 
-data class NonTerminal(val label: String) : NonTerminalEdgeLabel(label)
+class RuleEdgeLabel(val tokenMatchPredicate: (Token, EdgeLabel) -> Boolean, val edgeLabelMaker: (Token) -> EdgeLabel) :
+        EdgeLabel {
+
+    // to determine if this rule applies to the given token
+    override fun <T> matchesToken(token: T): Boolean = tokenMatchPredicate(token as Token, this)
+
+    // to produce the EdgeLabel for thw HyperGraph
+    fun applyToken(token: Token): EdgeLabel = edgeLabelMaker(token)
+}
+
+data class NonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
 
 data class Terminal(val content: String) : TerminalEdgeLabel<String>() {
     override fun <T> matchesToken(token: T): Boolean =
