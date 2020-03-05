@@ -1,7 +1,10 @@
 package hypergraph
 
+import java.util.concurrent.atomic.AtomicLong
+
 class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private val startState: HyperEdge<N>) {
     val hyperGraph = mutableHyperGraphOf(startState)
+    val nodeCounter = AtomicLong(1);
 
     private var nonTerminalsInGraph = listOf(startState.label as NonTerminalEdgeLabel)
 
@@ -74,9 +77,14 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
         this.removeAt(index)
     }
 
-    private fun <N> HyperGraph<N>.findHyperEdgeByLabel(label: NonTerminalEdgeLabel): HyperEdge<N> =
-            this.filter { it.label is NonTerminalEdgeLabel }
-                    .first { (it.label as NonTerminalEdgeLabel) == label }
+    private fun <N> HyperGraph<N>.findHyperEdgeByLabel(label: NonTerminalEdgeLabel): HyperEdge<N> {
+        val edges = this.filter { it.label is NonTerminalEdgeLabel && it.label == label }
+        if (edges.size == 1) {
+            return edges[0]
+        } else {
+            error("${edges.size} edges found with label $label, this is a TODO!?")
+        }
+    }
 }
 
 /// rules : edgeId -> listOf(HyperEdge)

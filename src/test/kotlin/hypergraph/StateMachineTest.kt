@@ -1,9 +1,9 @@
 package hypergraph
 
 import org.assertj.core.api.Assertions.assertThat
-//import org.junit.Test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.fail
 
 class StateMachineTest {
@@ -381,5 +381,66 @@ class StateMachineTest {
                 .sortedBy { it.source.toString() }
                 .joinToString("\n  ")
         println("\nhypergraph edges:\n  $toString\n")
+    }
+
+    @Test
+    fun testNodeId1() {
+        val edge1 = HyperEdge(listOf("a1", "a2"), TextTerminal("T"), listOf("b1", "b2"))
+        val edge2 = HyperEdge(listOf("_"), TextTerminal("R"), listOf("x"))
+        val nodeCounter = AtomicLong(1)
+
+        val fixedEdge1 = fixNodeLabelsInHE(edge1, nodeCounter)
+        with(fixedEdge1) {
+            assertThat(source).containsExactly("1", "2")
+            assertThat(label).isEqualTo(edge1.label)
+            assertThat(target).containsExactly("3", "4")
+        }
+
+        val fixedEdge2 = fixNodeLabelsInHE(edge2, nodeCounter)
+        with(fixedEdge2) {
+            assertThat(source).containsExactly("_")
+            assertThat(label).isEqualTo(edge2.label)
+            assertThat(target).containsExactly("5")
+        }
+    }
+
+    @Test
+    fun testNodeId2() {
+        val edge1 = HyperEdge(listOf("_"), NonTerminal("A"), listOf("x"))
+        val edge2 = HyperEdge(listOf("x"), TextTerminal("B"), listOf("_"))
+        val hg = hyperGraphOf(edge1, edge2)
+        val nodeCounter = AtomicLong(1)
+
+        val fixedHG = fixNodeLabelsInHG(hg, nodeCounter)
+        with(fixedHG[0]) {
+            assertThat(source).containsExactly("_")
+            assertThat(label).isEqualTo(edge1.label)
+            assertThat(target).containsExactly("1")
+        }
+
+        with(fixedHG[1]) {
+            assertThat(source).containsExactly("1")
+            assertThat(label).isEqualTo(edge2.label)
+            assertThat(target).containsExactly("_")
+        }
+    }
+
+    private fun fixNodeLabelsInHG(hyperGraph: HyperGraph<String>, nodeCounter: AtomicLong): HyperGraph<String> {
+        TODO()
+    }
+
+    private fun fixNodeLabelsInHE(hyperEdge: HyperEdge<String>, nodeCounter: AtomicLong): HyperEdge<String> {
+        val fixedSource = fixNodeLabels(hyperEdge.source, nodeCounter)
+        val fixedTarget = fixNodeLabels(hyperEdge.target, nodeCounter)
+        return HyperEdge(fixedSource, hyperEdge.label, fixedTarget)
+    }
+
+    private fun fixNodeLabels(nodeLabels: List<String>, nodeCounter: AtomicLong): List<String> {
+        return nodeLabels.map {
+            when (it) {
+                "_"  -> "_"
+                else -> nodeCounter.getAndIncrement().toString()
+            }
+        }
     }
 }
