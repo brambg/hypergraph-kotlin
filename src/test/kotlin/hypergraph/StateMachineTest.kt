@@ -7,53 +7,53 @@ import kotlin.test.fail
 
 class StateMachineTest {
 
-    @Nested
-    inner class JLM {
-        @Test
-        fun test_StateMachine_with_valid_input() {
-            val stateMachine = make_jlm_StateMachine()
-            val tokens = listOf("John", "loves", "Mary")
-            stateMachine.apply(tokens)
-            printHyperGraph(stateMachine)
-            assertThat(stateMachine.hasValidEndState()).isTrue
-        }
-
-        @Test
-        fun test_StateMachine_with_invalid_input() {
-            val stateMachine = make_jlm_StateMachine()
-            val badTokens = listOf("Cookiemonster", "eats", "stroopwafels")
-            try {
-                stateMachine.apply(badTokens)
-                printHyperGraph(stateMachine)
-            } catch (ex: Exception) {
-                assertThat(ex.message == "No rule found that matches token 'Cookiemonster'")
-            }
-            assertThat(stateMachine.hasValidEndState()).isFalse
-        }
-
-        private fun make_jlm_StateMachine(): StateMachine<String, String> {
-            val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
-
-            val rules = mapOf(
-//                // (_)-[OBJECT]-(_)
-//                "S" to hyperGraphOf(
-//                        HyperEdge(listOf("_"), NonTerminal("OBJECT"), listOf("_"))),
-                    // (_)-<John>-(x), (x)-[VERB]-(_)
-                    "S" to hyperGraphOf(
-                            HyperEdge(listOf("_"), Terminal("John"), listOf("3")),
-                            HyperEdge(listOf("3"), NonTerminal("VERB"), listOf("_"))),
-                    // (_)-<loves>-(x), (x)-[SUBJECT]-(_)
-                    "VERB" to hyperGraphOf(
-                            HyperEdge(listOf("_"), Terminal("loves"), listOf("4")),
-                            HyperEdge(listOf("4"), NonTerminal("SUBJECT"), listOf("_"))),
-                    // (_)-<Mary>-(_)
-                    "SUBJECT" to hyperGraphOf(
-                            HyperEdge(listOf("_"), Terminal("Mary"), listOf("_")))
-            )
-
-            return StateMachine(rules, startState)
-        }
-    }
+//    @Nested
+//    inner class JLM {
+//        @Test
+//        fun test_StateMachine_with_valid_input() {
+//            val stateMachine = make_jlm_StateMachine()
+//            val tokens = listOf("John", "loves", "Mary")
+//            stateMachine.apply(tokens)
+//            printHyperGraph(stateMachine)
+//            assertThat(stateMachine.hasValidEndState()).isTrue()
+//        }
+//
+//        @Test
+//        fun test_StateMachine_with_invalid_input() {
+//            val stateMachine = make_jlm_StateMachine()
+//            val badTokens = listOf("Cookiemonster", "eats", "stroopwafels")
+//            try {
+//                stateMachine.apply(badTokens)
+//                printHyperGraph(stateMachine)
+//            } catch (ex: Exception) {
+//                assertThat(ex.message == "No rule found that matches token 'Cookiemonster'")
+//            }
+//            assertThat(stateMachine.hasValidEndState()).isFalse()
+//        }
+//
+//        private fun make_jlm_StateMachine(): StateMachine<String, String> {
+//            val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
+//
+//            val rules = mapOf(
+////                // (_)-[OBJECT]-(_)
+////                "S" to hyperGraphOf(
+////                        HyperEdge(listOf("_"), NonTerminal("OBJECT"), listOf("_"))),
+//                    // (_)-<John>-(x), (x)-[VERB]-(_)
+//                    "S" to hyperGraphOf(
+//                            HyperEdge(listOf("_"), Terminal("John"), listOf("3")),
+//                            HyperEdge(listOf("3"), NonTerminal("VERB"), listOf("_"))),
+//                    // (_)-<loves>-(x), (x)-[SUBJECT]-(_)
+//                    "VERB" to hyperGraphOf(
+//                            HyperEdge(listOf("_"), Terminal("loves"), listOf("4")),
+//                            HyperEdge(listOf("4"), NonTerminal("SUBJECT"), listOf("_"))),
+//                    // (_)-<Mary>-(_)
+//                    "SUBJECT" to hyperGraphOf(
+//                            HyperEdge(listOf("_"), Terminal("Mary"), listOf("_")))
+//            )
+//
+//            return StateMachine(rules, startState)
+//        }
+//    }
 
     @Nested
     inner class TRD509a {
