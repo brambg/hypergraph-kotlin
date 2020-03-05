@@ -70,7 +70,7 @@ class StateMachineTest {
                     CloseMarkupToken("tag")
             )
             stateMachine.apply(tokens)
-            assertThat(stateMachine.hasValidEndState()).isTrue
+            assertThat(stateMachine.hasValidEndState()).isTrue()
             printHyperGraph(stateMachine)
         }
 
@@ -91,7 +91,7 @@ class StateMachineTest {
             } catch (ex: Exception) {
                 assertThat(ex.message).isEqualTo("Unexpected token: '<someothertagname]', expected '<tag]'")
             }
-            assertThat(stateMachine.hasValidEndState()).isFalse
+            assertThat(stateMachine.hasValidEndState()).isFalse()
         }
 
         private fun make_TRD509_1_StateMachine(): StateMachine<String, Token> {
@@ -177,7 +177,7 @@ class StateMachineTest {
                     CloseMarkupToken("tag")
             )
             stateMachine.apply(tokens)
-            assertThat(stateMachine.hasValidEndState()).isTrue
+            assertThat(stateMachine.hasValidEndState()).isTrue()
             printHyperGraph(stateMachine)
         }
 
@@ -199,7 +199,7 @@ class StateMachineTest {
             } catch (ex: Exception) {
                 assertThat(ex.message).isEqualTo("Unexpected token: '<tag]', expected '<color]'")
             }
-            assertThat(stateMachine.hasValidEndState()).isFalse
+            assertThat(stateMachine.hasValidEndState()).isFalse()
         }
 
         private fun make_TRD509_2_StateMachine(): StateMachine<String, Token> {
