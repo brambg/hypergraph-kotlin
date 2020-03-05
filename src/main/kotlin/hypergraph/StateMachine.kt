@@ -48,7 +48,7 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
                 else it // TODO: map nodeId from rule to nodeId from graph
             }
 
-            var newEdgeLabel = when (edge.label) {
+            val newEdgeLabel = when (edge.label) {
                 is RuleEdgeLabel -> edge.label.edgeLabelMaker(token)
                 else             -> edge.label
             }

@@ -70,7 +70,7 @@ class StateMachineTest {
                     CloseMarkupToken("tag")
             )
             stateMachine.apply(tokens)
-            assertThat(stateMachine.hasValidEndState()).isTrue()
+            assertThat(stateMachine.hasValidEndState()).isTrue
             printHyperGraph(stateMachine)
         }
 
@@ -91,7 +91,7 @@ class StateMachineTest {
             } catch (ex: Exception) {
                 assertThat(ex.message).isEqualTo("Unexpected token: '<someothertagname]', expected '<tag]'")
             }
-            assertThat(stateMachine.hasValidEndState()).isFalse()
+            assertThat(stateMachine.hasValidEndState()).isFalse
         }
 
         private fun make_TRD509_1_StateMachine(): StateMachine<String, Token> {
@@ -102,10 +102,7 @@ class StateMachineTest {
                     "S" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
-                                    RuleEdgeLabel(
-                                            { token, edgelabel -> token is OpenMarkupToken },
-                                            { token -> OpenMarkupNonTerminal("OM", (token as MarkupToken).tagName) }
-                                    ),
+                                    openMarkupNonTerminalRuleEdgeLabel("OM"),
                                     listOf("3")
                             ),
                             HyperEdge(
@@ -117,10 +114,7 @@ class StateMachineTest {
                     "TEXT" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
-                                    RuleEdgeLabel(
-                                            { token, edgeLabel -> token is TextToken },
-                                            { token -> TextTerminal((token as TextToken).content) }
-                                    ),
+                                    textTerminalRuleEdgeLabel(),
                                     listOf("_")
                             )),
 
@@ -128,13 +122,7 @@ class StateMachineTest {
                     "OM" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
-                                    RuleEdgeLabel(
-                                            { token, edgeLabel ->
-                                                token is CloseMarkupToken && edgeLabel is
-                                                        OpenMarkupNonTerminal && edgeLabel.tagName == token.tagName
-                                            },
-                                            { token -> MarkupTerminal((token as MarkupToken).tagName) }
-                                    ),
+                                    markupTerminalRuleEdgeLabel(),
                                     listOf("_")
                             ))
             )
@@ -143,69 +131,124 @@ class StateMachineTest {
         }
     }
 
-//    @Nested
-//    inner class TRD509b {
-//        /* [tag>[color>Green<color][food>Eggs<food][food>Ham<food]<tag] */
-//
-//        @Test
-//        fun test_TRD509_2_with_valid_input() {
-//            val stateMachine = make_TRD509_2_StateMachine()
-//
-//            val tokens = listOf(
-//                    OpenMarkupToken("tag"),
-//                    OpenMarkupToken("color"),
-//                    TextToken("Green"),
-//                    CloseMarkupToken("color"),
-//                    OpenMarkupToken("food"),
-//                    TextToken("Eggs"),
-//                    CloseMarkupToken("food"),
-//                    OpenMarkupToken("food"),
-//                    TextToken("Ham"),
-//                    CloseMarkupToken("food"),
-//                    CloseMarkupToken("tag")
-//            )
-//            stateMachine.apply(tokens)
-//            assertThat(stateMachine.hasValidEndState()).isTrue()
-//            printHyperGraph(stateMachine)
-//        }
-//
-//        @Test
-//        fun test_TRD509_2_with_invalid_input() {
-//            val stateMachine = make_TRD509_2_StateMachine()
-//
-//            val badTokens = listOf(
-//                    OpenMarkupToken("tag"),
-//                    OpenMarkupToken("color"),
-//                    TextToken("Green"),
-//                    CloseMarkupToken("tag")
-//            )
-//            stateMachine.apply(badTokens)
-//            try {
-//                stateMachine.apply(badTokens)
-//                printHyperGraph(stateMachine)
-//                fail()
-//            } catch (ex: Exception) {
-//                assertThat(ex.message).isEqualTo("Unexpected token: '<tag]', expected '<color]'")
-//            }
-//            assertThat(stateMachine.hasValidEndState()).isFalse()
-//        }
-//
-//        private fun make_TRD509_2_StateMachine(): StateMachine<String, Token> {
-//            val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
-//
-//            val rules = mapOf(
-////                "S" to hyperGraphOf(
-////                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM", MarkupToken::tagName), listOf("3")),
-////                        HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
-//                    "TEXT" to hyperGraphOf(
-//                            HyperEdge(listOf("_"), TextTerminal(), listOf("_")))//,
-////                "OM" to hyperGraphOf(
-////                        HyperEdge(listOf("_"), MarkupTerminal(MarkupToken::tagName), listOf("_")))
-//            )
-//
-//            return StateMachine(rules, startState)
-//        }
-//    }
+    private fun markupTerminalRuleEdgeLabel(): RuleEdgeLabel {
+        return RuleEdgeLabel(
+                { token, edgeLabel ->
+                    token is CloseMarkupToken && edgeLabel is
+                            OpenMarkupNonTerminal && edgeLabel.tagName == token.tagName
+                },
+                { token -> MarkupTerminal((token as MarkupToken).tagName) }
+        )
+    }
+
+    private fun textTerminalRuleEdgeLabel(): RuleEdgeLabel {
+        return RuleEdgeLabel(
+                { token, _ -> token is TextToken },
+                { token -> TextTerminal((token as TextToken).content) }
+        )
+    }
+
+    private fun openMarkupNonTerminalRuleEdgeLabel(nonTerminal: String): RuleEdgeLabel {
+        return RuleEdgeLabel(
+                { token, _ -> token is OpenMarkupToken },
+                { token -> OpenMarkupNonTerminal(nonTerminal, (token as MarkupToken).tagName) }
+        )
+    }
+
+    @Nested
+    inner class TRD509b {
+        /* [tag>[color>Green<color][food>Eggs<food][food>Ham<food]<tag] */
+
+        @Test
+        fun test_TRD509_2_with_valid_input() {
+            val stateMachine = make_TRD509_2_StateMachine()
+
+            val tokens = listOf(
+                    OpenMarkupToken("tag"),
+                    OpenMarkupToken("color"),
+                    TextToken("Green"),
+                    CloseMarkupToken("color"),
+                    OpenMarkupToken("food"),
+                    TextToken("Eggs"),
+                    CloseMarkupToken("food"),
+                    OpenMarkupToken("food"),
+                    TextToken("Ham"),
+                    CloseMarkupToken("food"),
+                    CloseMarkupToken("tag")
+            )
+            stateMachine.apply(tokens)
+            assertThat(stateMachine.hasValidEndState()).isTrue
+            printHyperGraph(stateMachine)
+        }
+
+        @Test
+        fun test_TRD509_2_with_invalid_input() {
+            val stateMachine = make_TRD509_2_StateMachine()
+
+            val badTokens = listOf(
+                    OpenMarkupToken("tag"),
+                    OpenMarkupToken("color"),
+                    TextToken("Green"),
+                    CloseMarkupToken("tag")
+            )
+            stateMachine.apply(badTokens)
+            try {
+                stateMachine.apply(badTokens)
+                printHyperGraph(stateMachine)
+                fail()
+            } catch (ex: Exception) {
+                assertThat(ex.message).isEqualTo("Unexpected token: '<tag]', expected '<color]'")
+            }
+            assertThat(stateMachine.hasValidEndState()).isFalse
+        }
+
+        private fun make_TRD509_2_StateMachine(): StateMachine<String, Token> {
+            val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
+
+            val rules = mapOf(
+                    // (_)-[OM(t)]-(x) (x)-[TEXT]-(_)
+                    "S" to hyperGraphOf(
+                            HyperEdge(
+                                    listOf("_"),
+                                    openMarkupNonTerminalRuleEdgeLabel("OM"),
+                                    listOf("3")
+                            ),
+                            HyperEdge(
+                                    listOf("3"),
+                                    MarkupNonTerminal("M"),
+                                    listOf("_")
+                            )),
+                    "M" to hyperGraphOf(
+                            HyperEdge(
+                                    listOf("_"),
+                                    openMarkupNonTerminalRuleEdgeLabel("OM"),
+                                    listOf("4")
+                            ),
+                            HyperEdge(
+                                    listOf("4"),
+                                    TextNonTerminal("TEXT"),
+                                    listOf("_")
+                            )),
+                    // (_)-<text(*)>-(_)
+                    "TEXT" to hyperGraphOf(
+                            HyperEdge(
+                                    listOf("_"),
+                                    textTerminalRuleEdgeLabel(),
+                                    listOf("_")
+                            )),
+
+//                 OM(t) -> (_)-<Markup(t)>-(_)
+                    "OM" to hyperGraphOf(
+                            HyperEdge(
+                                    listOf("_"),
+                                    markupTerminalRuleEdgeLabel(),
+                                    listOf("_")
+                            ))
+            )
+
+            return StateMachine(rules, startState)
+        }
+    }
 //
 //    @Nested
 //    inner class TRD509c {
