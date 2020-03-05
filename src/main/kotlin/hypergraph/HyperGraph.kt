@@ -5,9 +5,8 @@ data class HyperEdge<N>(
         val label: EdgeLabel,
         val target: List<N>
 ) {
-    override fun toString(): String {
-        return "(${source.joinToString()})--[$label]->(${target.joinToString()})"
-    }
+    override fun toString(): String =
+            "(${source.joinToString()})--[$label]->(${target.joinToString()})"
 }
 
 typealias HyperGraph<N> = List<HyperEdge<N>>
