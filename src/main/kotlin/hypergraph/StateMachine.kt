@@ -18,7 +18,7 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
                         }
                     }
             when (val size = nonTerminalsWithMatchingRuleRHSs.size) {
-                0    -> error("No rule found that matches token '$token'")
+                0    -> error("Unexpected token: '$token'")
                 1    -> replaceHyperEdge(
                         nonTerminalsWithMatchingRuleRHSs[0].first,
                         nonTerminalsWithMatchingRuleRHSs[0].second!!,

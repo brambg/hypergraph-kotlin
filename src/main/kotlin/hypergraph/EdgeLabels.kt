@@ -10,11 +10,7 @@ data class NonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
 
 data class Terminal(val content: String) : TerminalEdgeLabel()
 
-data class MarkupNonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
-
 data class OpenMarkupNonTerminal(val labelId: String, val tagName: String) : NonTerminalEdgeLabel(labelId)
-
-data class TextNonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
 
 class RuleEdgeLabel(
         val tokenMatchPredicate: (Token, EdgeLabel) -> Boolean,

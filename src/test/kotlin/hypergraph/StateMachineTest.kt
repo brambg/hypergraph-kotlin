@@ -107,7 +107,7 @@ class StateMachineTest {
                             ),
                             HyperEdge(
                                     listOf("3"),
-                                    TextNonTerminal("TEXT"),
+                                    NonTerminal("TEXT"),
                                     listOf("_")
                             )),
                     // (_)-<text(*)>-(_)
@@ -118,7 +118,7 @@ class StateMachineTest {
                                     listOf("_")
                             )),
 
-//                 OM(t) -> (_)-<Markup(t)>-(_)
+                    // OM(t) -> (_)-<Markup(t)>-(_)
                     "OM" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
@@ -206,7 +206,6 @@ class StateMachineTest {
             val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
 
             val rules = mapOf(
-                    // (_)-[OM(t)]-(x) (x)-[TEXT]-(_)
                     "S" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
@@ -215,7 +214,7 @@ class StateMachineTest {
                             ),
                             HyperEdge(
                                     listOf("3"),
-                                    MarkupNonTerminal("M"),
+                                    NonTerminal("M"),
                                     listOf("_")
                             )),
                     "M" to hyperGraphOf(
@@ -226,10 +225,9 @@ class StateMachineTest {
                             ),
                             HyperEdge(
                                     listOf("4"),
-                                    TextNonTerminal("TEXT"),
+                                    NonTerminal("TEXT"),
                                     listOf("_")
                             )),
-                    // (_)-<text(*)>-(_)
                     "TEXT" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
@@ -237,7 +235,6 @@ class StateMachineTest {
                                     listOf("_")
                             )),
 
-//                 OM(t) -> (_)-<Markup(t)>-(_)
                     "OM" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
