@@ -1,6 +1,7 @@
 package hypergraph
 
 import org.assertj.core.api.Assertions.assertThat
+//import org.junit.Test
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import kotlin.test.fail
@@ -69,7 +70,7 @@ class StateMachineTest {
                     CloseMarkupToken("tag")
             )
             stateMachine.apply(tokens)
-            assertThat(stateMachine.hasValidEndState()).isTrue
+            assertThat(stateMachine.hasValidEndState()).isTrue()
             printHyperGraph(stateMachine)
         }
 
@@ -90,7 +91,7 @@ class StateMachineTest {
             } catch (ex: Exception) {
                 assertThat(ex.message).isEqualTo("Unexpected token: '<someothertagname]', expected '<tag]'")
             }
-            assertThat(stateMachine.hasValidEndState()).isFalse
+            assertThat(stateMachine.hasValidEndState()).isFalse()
         }
 
         private fun make_TRD509_1_StateMachine(): StateMachine<String, Token> {
