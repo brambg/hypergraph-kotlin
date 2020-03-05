@@ -97,14 +97,7 @@ class StateMachineTest {
             val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
 
             val rules = mapOf(
-                    // (_)-[M]-(_)
-//                    "S" to hyperGraphOf(
-//                            HyperEdge(listOf("_"), MarkupNonTerminal("M"), listOf("_"))),
-
                     // (_)-[OM(t)]-(x) (x)-[TEXT]-(_)
-//                "M" to hyperGraphOf(
-//                        HyperEdge(listOf("_"), OpenMarkupNonTerminal("OM"), listOf("3")),
-//                        HyperEdge(listOf("3"), TextNonTerminal("TEXT"), listOf("_"))),
                     "S" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
@@ -119,10 +112,7 @@ class StateMachineTest {
                                     TextNonTerminal("TEXT"),
                                     listOf("_")
                             )),
-                    // the OpenMarkupNonTerminal is a TemplateLabel, which means it should add a rule based on the token
                     // (_)-<text(*)>-(_)
-//                    "TEXT" to hyperGraphOf(
-//                            HyperEdge(listOf("_"), TextTerminal(), listOf("_"))),
                     "TEXT" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
@@ -134,8 +124,6 @@ class StateMachineTest {
                             )),
 
 //                 OM(t) -> (_)-<Markup(t)>-(_)
-//                "OM" to hyperGraphOf(
-//                        HyperEdge(listOf("_"), MarkupTerminal(MarkupToken::tagName), listOf("_"))),
                     "OM" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
