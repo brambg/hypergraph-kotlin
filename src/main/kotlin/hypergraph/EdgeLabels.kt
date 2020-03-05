@@ -4,27 +4,27 @@ interface EdgeLabel
 
 open class NonTerminalEdgeLabel(val name: String) : EdgeLabel
 
-data class MarkupNonTerminal(val nonTerminal: String) : NonTerminalEdgeLabel(nonTerminal)
+abstract class TerminalEdgeLabel : EdgeLabel
 
-data class OpenMarkupNonTerminal(val nonTerminal: String, val tagName: String) : NonTerminalEdgeLabel(nonTerminal)
+data class NonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
 
-data class TextNonTerminal(val label: String) : NonTerminalEdgeLabel(label)
+data class Terminal(val content: String) : TerminalEdgeLabel()
 
-abstract class TerminalEdgeLabel<in T> : EdgeLabel
+data class MarkupNonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
 
-class TextTerminal(val content: String) : TerminalEdgeLabel<TextToken>() {
-    override fun toString(): String = """"$content""""
-}
+data class OpenMarkupNonTerminal(val labelId: String, val tagName: String) : NonTerminalEdgeLabel(labelId)
 
-class MarkupTerminal(val tagName: String) : TerminalEdgeLabel<MarkupToken>() {
-    override fun toString(): String = "[$tagName]"
-}
+data class TextNonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
 
 class RuleEdgeLabel(
         val tokenMatchPredicate: (Token, EdgeLabel) -> Boolean,
         val edgeLabelMaker: (Token) -> EdgeLabel
 ) : NonTerminalEdgeLabel("")
 
-data class NonTerminal(val labelId: String) : NonTerminalEdgeLabel(labelId)
+class TextTerminal(val content: String) : TerminalEdgeLabel() {
+    override fun toString(): String = """"$content""""
+}
 
-data class Terminal(val content: String) : TerminalEdgeLabel<String>()
+class MarkupTerminal(val tagName: String) : TerminalEdgeLabel() {
+    override fun toString(): String = "[$tagName]"
+}
