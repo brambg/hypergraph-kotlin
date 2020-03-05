@@ -26,7 +26,7 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
                 )
                 else -> error("$size rules were found, that should not be possible!")
             }
-            println("result: ${hyperGraph.sortedBy(HyperEdge<N>::toString)}\n")
+            println("result: ${hyperGraph.sortedBy(HyperEdge<N>::toString).joinToString("\n        ")}\n")
         }
     }
 
