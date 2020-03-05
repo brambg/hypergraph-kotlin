@@ -427,11 +427,13 @@ class StateMachineTest {
     @Test
     fun testNodeId2() {
         val edge1 = HyperEdge(listOf("_"), NonTerminal("A"), listOf("x"))
-        val edge2 = HyperEdge(listOf("x"), TextTerminal("B"), listOf("_"))
-        val hg = hyperGraphOf(edge1, edge2)
+        val edge2 = HyperEdge(listOf("x"), TextTerminal("B"), listOf("y"))
+        val edge3 = HyperEdge(listOf("y"), TextTerminal("C"), listOf("_"))
+        val hg = hyperGraphOf(edge1, edge2, edge3)
         val nodeCounter = AtomicLong(1)
 
         val fixedHG = fixNodeLabelsInHG(hg, nodeCounter)
+        assertThat(fixedHG).hasSize(3)
         with(fixedHG[0]) {
             assertThat(source).containsExactly("_")
             assertThat(label).isEqualTo(edge1.label)
@@ -441,25 +443,45 @@ class StateMachineTest {
         with(fixedHG[1]) {
             assertThat(source).containsExactly("1")
             assertThat(label).isEqualTo(edge2.label)
+            assertThat(target).containsExactly("2")
+        }
+
+        with(fixedHG[2]) {
+            assertThat(source).containsExactly("2")
+            assertThat(label).isEqualTo(edge3.label)
             assertThat(target).containsExactly("_")
         }
     }
 
     private fun fixNodeLabelsInHG(hyperGraph: HyperGraph<String>, nodeCounter: AtomicLong): HyperGraph<String> {
-        TODO()
+        val nodeLabels = hyperGraph.map { he ->
+            mutableSetOf(*he.source.toTypedArray())
+                    .also { it.addAll(he.target) }
+        }
+        val nodeLabelMap = mutableMapOf<String, String>()
+        return hyperGraph.map { fixNodeLabelsInHE(it, nodeCounter, nodeLabelMap) }
     }
 
-    private fun fixNodeLabelsInHE(hyperEdge: HyperEdge<String>, nodeCounter: AtomicLong): HyperEdge<String> {
-        val fixedSource = fixNodeLabels(hyperEdge.source, nodeCounter)
-        val fixedTarget = fixNodeLabels(hyperEdge.target, nodeCounter)
+    private fun fixNodeLabelsInHE(
+            hyperEdge: HyperEdge<String>,
+            nodeCounter: AtomicLong,
+            nodeLabelMap: MutableMap<String, String> = mutableMapOf()
+    ): HyperEdge<String> {
+        val fixedSource = fixNodeLabels(hyperEdge.source, nodeCounter, nodeLabelMap)
+        val fixedTarget = fixNodeLabels(hyperEdge.target, nodeCounter, nodeLabelMap)
         return HyperEdge(fixedSource, hyperEdge.label, fixedTarget)
     }
 
-    private fun fixNodeLabels(nodeLabels: List<String>, nodeCounter: AtomicLong): List<String> {
+    private fun fixNodeLabels(nodeLabels: List<String>, nodeCounter: AtomicLong, nodeLabelMap: MutableMap<String, String>): List<String> {
         return nodeLabels.map {
             when (it) {
-                "_"  -> "_"
-                else -> nodeCounter.getAndIncrement().toString()
+                "_"                  -> "_"
+                in nodeLabelMap.keys -> nodeLabelMap[it]!!
+                else                 -> {
+                    val fix = nodeCounter.getAndIncrement().toString()
+                    nodeLabelMap[it] = fix
+                    fix
+                }
             }
         }
     }

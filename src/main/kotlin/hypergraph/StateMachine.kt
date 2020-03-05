@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private val startState: HyperEdge<N>) {
     val hyperGraph = mutableHyperGraphOf(startState)
-    val nodeCounter = AtomicLong(1);
+    val nodeCounter = AtomicLong(1)
 
     private var nonTerminalsInGraph = listOf(startState.label as NonTerminalEdgeLabel)
 
@@ -86,11 +86,3 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
         }
     }
 }
-
-/// rules : edgeId -> listOf(HyperEdge)
-// rules document the he replacement rules, so the lhs should map to he in the hg, and the rhs should map to a
-// replacementhg
-// problem: we need parameterized rules -> the edges in the rhs of the rules should map to he, using information from
-// the token, and the he from the hg
-// the he in the rhs, when nonterminal, have a variable to link to the lhs of some other rules
-//
