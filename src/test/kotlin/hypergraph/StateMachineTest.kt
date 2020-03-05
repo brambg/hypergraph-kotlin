@@ -94,6 +94,26 @@ class StateMachineTest {
             assertThat(stateMachine.hasValidEndState()).isFalse()
         }
 
+        @Test
+        fun test_TRD509_1_with_invalid_input_order() {
+            val stateMachine = make_TRD509_1_StateMachine()
+
+            val badTokens = listOf(
+                    OpenMarkupToken("tag"),
+                    CloseMarkupToken("tag"),
+                    TextToken("text")
+            )
+
+            try {
+                stateMachine.apply(badTokens)
+                printHyperGraph(stateMachine)
+                fail()
+            } catch (ex: Exception) {
+                assertThat(ex.message).isEqualTo("Unexpected token: '<tag]', expected text")
+            }
+            assertThat(stateMachine.hasValidEndState()).isFalse()
+        }
+
         private fun make_TRD509_1_StateMachine(): StateMachine<String, Token> {
             val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
 
