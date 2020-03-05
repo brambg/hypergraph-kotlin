@@ -26,6 +26,7 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
                 )
                 else -> error("$size rules were found, that should not be possible!")
             }
+            println("result: ${hyperGraph.sortedBy(HyperEdge<N>::toString)}\n")
         }
     }
 
@@ -66,8 +67,6 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
         nonTerminalsInGraph = hyperGraph
                 .filter { it.label is NonTerminalEdgeLabel }
                 .map { it.label as NonTerminalEdgeLabel }
-                .toList()
-        println("result: $hyperGraph\n")
     }
 
     private fun <N> MutableHyperGraph<N>.deleteHyperEdgeInHyperGraph(hyperEdgeToReplace: HyperEdge<N>) {
@@ -77,7 +76,7 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
 
     private fun <N> HyperGraph<N>.findHyperEdgeByLabel(label: NonTerminalEdgeLabel): HyperEdge<N> =
             this.filter { it.label is NonTerminalEdgeLabel }
-                    .first { (it.label as NonTerminalEdgeLabel).name == label.name }
+                    .first { (it.label as NonTerminalEdgeLabel) == label }
 }
 
 /// rules : edgeId -> listOf(HyperEdge)
