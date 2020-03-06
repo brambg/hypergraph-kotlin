@@ -2,13 +2,13 @@ package hypergraph
 
 import java.util.concurrent.atomic.AtomicLong
 
-class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private val startState: HyperEdge<N>) {
-    val hyperGraph = mutableHyperGraphOf(startState)
-    val nodeCounter = AtomicLong(1)
+class StateMachine(private val rules: Map<String, HyperGraph<String>>, private val startState: HyperEdge<String>) {
+    private val nodeCounter = AtomicLong(1)
+    val hyperGraph = mutableHyperGraphOf(fixNodeLabelsInHE(startState, nodeCounter))
 
     private var nonTerminalsInGraph = listOf(startState.label as NonTerminalEdgeLabel)
 
-    fun apply(tokens: List<T>) {
+    fun apply(tokens: List<Token>) {
         for (token in tokens) {
             println("nonTerminals: $nonTerminalsInGraph")
             println("token: $token")
@@ -17,19 +17,19 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
                     .filter {
                         it.second != null && it.second!!.any { rule ->
                             rule.label is RuleEdgeLabel &&
-                            rule.label.tokenMatchPredicate(token as Token, it.first)
+                                    rule.label.tokenMatchPredicate(token, it.first)
                         }
                     }
             when (val size = nonTerminalsWithMatchingRuleRHSs.size) {
-                0    -> error("Unexpected token: '$token'")
-                1    -> replaceHyperEdge(
+                0 -> error("Unexpected token: '$token'")
+                1 -> replaceHyperEdge(
                         nonTerminalsWithMatchingRuleRHSs[0].first,
                         nonTerminalsWithMatchingRuleRHSs[0].second!!,
-                        token as Token
+                        token
                 )
                 else -> error("$size rules were found, that should not be possible!")
             }
-            println("result: ${hyperGraph.sortedBy(HyperEdge<N>::toString).joinToString("\n        ")}\n")
+            println("result: ${hyperGraph.sortedBy(HyperEdge<String>::toString).joinToString("\n        ")}\n")
         }
     }
 
@@ -40,26 +40,27 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
         hyperGraph.add(startState)
     }
 
-    private fun replaceHyperEdge(hyperEdgeLabel: NonTerminalEdgeLabel, hyperGraphToReplaceWith: HyperGraph<N>, token: Token) {
+    private fun replaceHyperEdge(hyperEdgeLabel: NonTerminalEdgeLabel, hyperGraphToReplaceWith: HyperGraph<String>, token: Token) {
         val hyperEdgeToReplace = hyperGraph.findHyperEdgeByLabel(hyperEdgeLabel)
 
         val iterSourceExternalNodes = hyperEdgeToReplace.source.toList().iterator()
         val iterTargetExternalNodes = hyperEdgeToReplace.target.toList().iterator()
 
+        val nodeLabelMap = mutableMapOf<String, String>()
         val newHyperEdges = hyperGraphToReplaceWith.map { edge ->
             val newSourceNodes = edge.source.map {
                 if (it == "_") iterSourceExternalNodes.next()
-                else it // TODO: map nodeId from rule to nodeId from graph
+                else fixNodeLabel(it, nodeCounter, nodeLabelMap)
             }
 
             val newEdgeLabel = when (edge.label) {
                 is RuleEdgeLabel -> edge.label.edgeLabelMaker(token)
-                else             -> edge.label
+                else -> edge.label
             }
 
             val newTargetNodes = edge.target.map {
                 if (it == "_") iterTargetExternalNodes.next()
-                else it // TODO: map nodeId from rule to nodeId from graph
+                else fixNodeLabel(it, nodeCounter, nodeLabelMap)
             }
 
             HyperEdge(newSourceNodes, newEdgeLabel, newTargetNodes)
@@ -85,4 +86,33 @@ class StateMachine<N, T>(private val rules: Map<String, HyperGraph<N>>, private 
             error("${edges.size} edges found with label $label, this is a TODO!?")
         }
     }
+
+    private fun fixNodeLabelsInHE(
+            hyperEdge: HyperEdge<String>,
+            nodeCounter: AtomicLong
+    ): HyperEdge<String> {
+        val nodeLabelMap: MutableMap<String, String> = mutableMapOf()
+        val fixedSource = fixNodeLabels(hyperEdge.source, nodeCounter, nodeLabelMap)
+        val fixedTarget = fixNodeLabels(hyperEdge.target, nodeCounter, nodeLabelMap)
+        return HyperEdge(fixedSource, hyperEdge.label, fixedTarget)
+    }
+
+    private fun fixNodeLabels(nodeLabels: List<String>, nodeCounter: AtomicLong, nodeLabelMap: MutableMap<String, String>): List<String> {
+        return nodeLabels.map {
+            fixNodeLabel(it, nodeCounter, nodeLabelMap)
+        }
+    }
+
+    private fun fixNodeLabel(label: String, nodeCounter: AtomicLong, nodeLabelMap: MutableMap<String, String>): String {
+        return when (label) {
+            "_" -> "_"
+            in nodeLabelMap.keys -> nodeLabelMap[label]!!
+            else -> {
+                val fixed = nodeCounter.getAndIncrement().toString()
+                nodeLabelMap[label] = fixed
+                fixed
+            }
+        }
+    }
+
 }

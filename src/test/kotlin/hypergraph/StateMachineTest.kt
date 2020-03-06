@@ -69,9 +69,16 @@ class StateMachineTest {
                     TextToken("text"),
                     CloseMarkupToken("tag")
             )
-            stateMachine.apply(tokens)
-            assertThat(stateMachine.hasValidEndState()).isTrue()
-            printHyperGraph(stateMachine)
+            with(stateMachine) {
+                apply(tokens)
+                assertThat(hasValidEndState()).isTrue()
+                assertThat(hyperGraph.map { it.toString() })
+                        .containsExactlyInAnyOrder(
+                                "(1)--[[tag]]->(3)",
+                                "(3)--[\"text\"]->(2)"
+                        )
+                printHyperGraph(this)
+            }
         }
 
         @Test
@@ -114,8 +121,8 @@ class StateMachineTest {
             assertThat(stateMachine.hasValidEndState()).isFalse()
         }
 
-        private fun make_TRD509_1_StateMachine(): StateMachine<String, Token> {
-            val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
+        private fun make_TRD509_1_StateMachine(): StateMachine {
+            val startState = HyperEdge(listOf("a"), NonTerminal("S"), listOf("b"))
 
             val rules = mapOf(
                     // (_)-[OM(t)]-(x) (x)-[TEXT]-(_)
@@ -123,10 +130,10 @@ class StateMachineTest {
                             HyperEdge(
                                     listOf("_"),
                                     openMarkupNonTerminalRuleEdgeLabel("OM"),
-                                    listOf("3")
+                                    listOf("x")
                             ),
                             HyperEdge(
-                                    listOf("3"),
+                                    listOf("x"),
                                     NonTerminal("TEXT"),
                                     listOf("_")
                             )),
@@ -222,18 +229,18 @@ class StateMachineTest {
             assertThat(stateMachine.hasValidEndState()).isFalse()
         }
 
-        private fun make_TRD509_2_StateMachine(): StateMachine<String, Token> {
-            val startState = HyperEdge(listOf("1"), NonTerminal("S"), listOf("2"))
+        private fun make_TRD509_2_StateMachine(): StateMachine {
+            val startState = HyperEdge(listOf("a"), NonTerminal("S"), listOf("z"))
 
             val rules = mapOf(
                     "S" to hyperGraphOf(
                             HyperEdge(
                                     listOf("_"),
                                     openMarkupNonTerminalRuleEdgeLabel("OM"),
-                                    listOf("3")
+                                    listOf("x")
                             ),
                             HyperEdge(
-                                    listOf("3"),
+                                    listOf("x"),
                                     NonTerminal("M"),
                                     listOf("_")
                             )),
@@ -241,10 +248,10 @@ class StateMachineTest {
                             HyperEdge(
                                     listOf("_"),
                                     openMarkupNonTerminalRuleEdgeLabel("OM"),
-                                    listOf("4")
+                                    listOf("x")
                             ),
                             HyperEdge(
-                                    listOf("4"),
+                                    listOf("x"),
                                     NonTerminal("TEXT"),
                                     listOf("_")
                             )),
@@ -396,93 +403,11 @@ class StateMachineTest {
 //        }
 //    }
 
-    private fun <T> printHyperGraph(stateMachine: StateMachine<String, T>) {
+    private fun printHyperGraph(stateMachine: StateMachine) {
         val toString = stateMachine.hyperGraph
                 .sortedBy { it.source.toString() }
                 .joinToString("\n  ")
         println("\nhypergraph edges:\n  $toString\n")
     }
 
-    @Test
-    fun testNodeId1() {
-        val edge1 = HyperEdge(listOf("a1", "a2"), TextTerminal("T"), listOf("b1", "b2"))
-        val edge2 = HyperEdge(listOf("_"), TextTerminal("R"), listOf("x"))
-        val nodeCounter = AtomicLong(1)
-
-        val fixedEdge1 = fixNodeLabelsInHE(edge1, nodeCounter)
-        with(fixedEdge1) {
-            assertThat(source).containsExactly("1", "2")
-            assertThat(label).isEqualTo(edge1.label)
-            assertThat(target).containsExactly("3", "4")
-        }
-
-        val fixedEdge2 = fixNodeLabelsInHE(edge2, nodeCounter)
-        with(fixedEdge2) {
-            assertThat(source).containsExactly("_")
-            assertThat(label).isEqualTo(edge2.label)
-            assertThat(target).containsExactly("5")
-        }
-    }
-
-    @Test
-    fun testNodeId2() {
-        val edge1 = HyperEdge(listOf("_"), NonTerminal("A"), listOf("x"))
-        val edge2 = HyperEdge(listOf("x"), TextTerminal("B"), listOf("y"))
-        val edge3 = HyperEdge(listOf("y"), TextTerminal("C"), listOf("_"))
-        val hg = hyperGraphOf(edge1, edge2, edge3)
-        val nodeCounter = AtomicLong(1)
-
-        val fixedHG = fixNodeLabelsInHG(hg, nodeCounter)
-        assertThat(fixedHG).hasSize(3)
-        with(fixedHG[0]) {
-            assertThat(source).containsExactly("_")
-            assertThat(label).isEqualTo(edge1.label)
-            assertThat(target).containsExactly("1")
-        }
-
-        with(fixedHG[1]) {
-            assertThat(source).containsExactly("1")
-            assertThat(label).isEqualTo(edge2.label)
-            assertThat(target).containsExactly("2")
-        }
-
-        with(fixedHG[2]) {
-            assertThat(source).containsExactly("2")
-            assertThat(label).isEqualTo(edge3.label)
-            assertThat(target).containsExactly("_")
-        }
-    }
-
-    private fun fixNodeLabelsInHG(hyperGraph: HyperGraph<String>, nodeCounter: AtomicLong): HyperGraph<String> {
-        val nodeLabels = hyperGraph.map { he ->
-            mutableSetOf(*he.source.toTypedArray())
-                    .also { it.addAll(he.target) }
-        }
-        val nodeLabelMap = mutableMapOf<String, String>()
-        return hyperGraph.map { fixNodeLabelsInHE(it, nodeCounter, nodeLabelMap) }
-    }
-
-    private fun fixNodeLabelsInHE(
-            hyperEdge: HyperEdge<String>,
-            nodeCounter: AtomicLong,
-            nodeLabelMap: MutableMap<String, String> = mutableMapOf()
-    ): HyperEdge<String> {
-        val fixedSource = fixNodeLabels(hyperEdge.source, nodeCounter, nodeLabelMap)
-        val fixedTarget = fixNodeLabels(hyperEdge.target, nodeCounter, nodeLabelMap)
-        return HyperEdge(fixedSource, hyperEdge.label, fixedTarget)
-    }
-
-    private fun fixNodeLabels(nodeLabels: List<String>, nodeCounter: AtomicLong, nodeLabelMap: MutableMap<String, String>): List<String> {
-        return nodeLabels.map {
-            when (it) {
-                "_"                  -> "_"
-                in nodeLabelMap.keys -> nodeLabelMap[it]!!
-                else                 -> {
-                    val fix = nodeCounter.getAndIncrement().toString()
-                    nodeLabelMap[it] = fix
-                    fix
-                }
-            }
-        }
-    }
 }
